@@ -1,0 +1,415 @@
+2.5
+
+3: enp0s8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    inet6 fd01:2345:6789:abc1::2/64 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe50:a334/64 scope link
+       valid_lft forever preferred_lft forever
+
+
+::1 dev lo proto kernel metric 256 pref medium
+fd01:2345:6789:abc1::/64 dev enp0s8 proto kernel metric 256 pref medium
+fd01:2345:6789:abc2::/64 via fd01:2345:6789:abc1::1 dev enp0s8 metric 1024 pref medium
+fe80::/64 dev enp0s3 proto kernel metric 256 pref medium
+fe80::/64 dev enp0s8 proto kernel metric 256 pref medium
+
+
+
+2.6
+
+[ping6]
+
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc1::1
+PING fd01:2345:6789:abc1::1(fd01:2345:6789:abc1::1) 56 data bytes
+64 bytes from fd01:2345:6789:abc1::1: icmp_seq=1 ttl=64 time=0.221 ms
+64 bytes from fd01:2345:6789:abc1::1: icmp_seq=2 ttl=64 time=0.227 ms
+^C
+--- fd01:2345:6789:abc1::1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1008ms
+rtt min/avg/max/mdev = 0.221/0.224/0.227/0.003 ms
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc2::1
+PING fd01:2345:6789:abc2::1(fd01:2345:6789:abc2::1) 56 data bytes
+64 bytes from fd01:2345:6789:abc2::1: icmp_seq=1 ttl=64 time=0.334 ms
+64 bytes from fd01:2345:6789:abc2::1: icmp_seq=2 ttl=64 time=0.264 ms
+^C
+--- fd01:2345:6789:abc2::1 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1005ms
+rtt min/avg/max/mdev = 0.264/0.299/0.334/0.035 ms
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc2::2
+PING fd01:2345:6789:abc2::2(fd01:2345:6789:abc2::2) 56 data bytes
+64 bytes from fd01:2345:6789:abc2::2: icmp_seq=1 ttl=63 time=0.479 ms
+64 bytes from fd01:2345:6789:abc2::2: icmp_seq=2 ttl=63 time=0.399 ms
+^C
+--- fd01:2345:6789:abc2::2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1020ms
+rtt min/avg/max/mdev = 0.399/0.439/0.479/0.040 ms
+
+[tcpdump]
+
+
+vagrant@lab2:~$ sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+15:15:21.614051 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, echo request, id 18, seq 1, length 64
+15:15:21.614253 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, echo reply, id 18, seq 1, length 64
+15:15:22.622191 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, echo request, id 18, seq 2, length 64
+15:15:22.622392 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, echo reply, id 18, seq 2, length 64
+15:15:54.258038 IP6 lab2 > fd01:2345:6789:abc2::1: ICMP6, echo request, id 19, seq 1, length 64
+15:15:54.258355 IP6 fd01:2345:6789:abc2::1 > lab2: ICMP6, echo reply, id 19, seq 1, length 64
+15:15:55.262995 IP6 lab2 > fd01:2345:6789:abc2::1: ICMP6, echo request, id 19, seq 2, length 64
+15:15:55.263228 IP6 fd01:2345:6789:abc2::1 > lab2: ICMP6, echo reply, id 19, seq 2, length 64
+15:15:59.292347 IP6 fe80::a00:27ff:feef:9233 > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+15:15:59.292377 IP6 lab2 > fe80::a00:27ff:feef:9233: ICMP6, neighbor advertisement, tgt is lab2, length 24
+15:15:59.422151 IP6 lab2 > fd01:2345:6789:abc1::1: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc1::1, length 32
+15:15:59.422365 IP6 fd01:2345:6789:abc1::1 > lab2: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc1::1, length 24
+15:16:04.542940 IP6 lab2 > fe80::a00:27ff:feef:9233: ICMP6, neighbor solicitation, who has fe80::a00:27ff:feef:9233, length 32
+15:16:04.543157 IP6 fe80::a00:27ff:feef:9233 > lab2: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:feef:9233, length 24
+15:16:04.667990 IP6 fe80::a00:27ff:feef:9233 > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+15:16:04.668013 IP6 lab2 > fe80::a00:27ff:feef:9233: ICMP6, neighbor advertisement, tgt is lab2, length 24
+15:16:38.947930 IP6 lab2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 20, seq 1, length 64
+15:16:38.948397 IP6 fd01:2345:6789:abc2::2 > lab2: ICMP6, echo reply, id 20, seq 1, length 64
+15:16:39.967452 IP6 lab2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 20, seq 2, length 64
+15:16:39.967826 IP6 fd01:2345:6789:abc2::2 > lab2: ICMP6, echo reply, id 20, seq 2, length 64
+15:16:44.095272 IP6 fe80::a00:27ff:feef:9233 > lab2: ICMP6, neighbor solicitation, who has lab2, length 32
+15:16:44.095292 IP6 lab2 > fe80::a00:27ff:feef:9233: ICMP6, neighbor advertisement, tgt is lab2, length 24
+
+vagrant@lab1:~$ sudo tcpdump -i enp0s8 -i enp0s9
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s9, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+15:33:33.635831 IP6 fd01:2345:6789:abc1::2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 20, seq 1, length 64
+15:33:33.636053 IP6 fd01:2345:6789:abc2::2 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 20, seq 1, length 64
+15:33:34.655320 IP6 fd01:2345:6789:abc1::2 > fd01:2345:6789:abc2::2: ICMP6, echo request, id 20, seq 2, length 64
+15:33:34.655511 IP6 fd01:2345:6789:abc2::2 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 20, seq 2, length 64
+15:33:38.748931 IP6 fe80::a00:27ff:fed0:3ce2 > lab1: ICMP6, neighbor solicitation, who has lab1, length 32
+15:33:38.748955 IP6 lab1 > fe80::a00:27ff:fed0:3ce2: ICMP6, neighbor advertisement, tgt is lab1, length 24
+15:33:38.782983 IP6 lab1 > fd01:2345:6789:abc2::2: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc2::2, length 32
+15:33:38.783200 IP6 fd01:2345:6789:abc2::2 > lab1: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc2::2, length 24
+15:33:43.869028 IP6 fe80::a00:27ff:fed0:3ce2 > lab1: ICMP6, neighbor solicitation, who has lab1, length 32
+15:33:43.869052 IP6 lab1 > fe80::a00:27ff:fed0:3ce2: ICMP6, neighbor advertisement, tgt is lab1, length 24
+15:33:43.899135 IP6 lab1 > fe80::a00:27ff:fed0:3ce2: ICMP6, neighbor solicitation, who has fe80::a00:27ff:fed0:3ce2, length 32
+15:33:43.899369 IP6 fe80::a00:27ff:fed0:3ce2 > lab1: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:fed0:3ce2, length 24
+
+vagrant@lab3:~$ sudo tcpdump -i enp0s8
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+15:33:33.630970 IP6 fd01:2345:6789:abc1::2 > lab3: ICMP6, echo request, id 20, seq 1, length 64
+15:33:33.630995 IP6 lab3 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 20, seq 1, length 64
+15:33:34.650421 IP6 fd01:2345:6789:abc1::2 > lab3: ICMP6, echo request, id 20, seq 2, length 64
+15:33:34.650445 IP6 lab3 > fd01:2345:6789:abc1::2: ICMP6, echo reply, id 20, seq 2, length 64
+15:33:38.743803 IP6 lab3 > fd01:2345:6789:abc2::1: ICMP6, neighbor solicitation, who has fd01:2345:6789:abc2::1, length 32
+15:33:38.744011 IP6 fd01:2345:6789:abc2::1 > lab3: ICMP6, neighbor advertisement, tgt is fd01:2345:6789:abc2::1, length 24
+15:33:38.778039 IP6 fe80::a00:27ff:fed0:87e0 > lab3: ICMP6, neighbor solicitation, who has lab3, length 32
+15:33:38.778064 IP6 lab3 > fe80::a00:27ff:fed0:87e0: ICMP6, neighbor advertisement, tgt is lab3, length 24
+15:33:43.863835 IP6 lab3 > fe80::a00:27ff:fed0:87e0: ICMP6, neighbor solicitation, who has fe80::a00:27ff:fed0:87e0, length 32
+15:33:43.864070 IP6 fe80::a00:27ff:fed0:87e0 > lab3: ICMP6, neighbor advertisement, tgt is fe80::a00:27ff:fed0:87e0, length 24
+15:33:43.894181 IP6 fe80::a00:27ff:fed0:87e0 > lab3: ICMP6, neighbor solicitation, who has lab3, length 32
+15:33:43.894207 IP6 lab3 > fe80::a00:27ff:fed0:87e0: ICMP6, neighbor advertisement, tgt is lab3, length 24
+
+
+3
+vagrant@lab1:~$ sudo tcpdump -i enp0s8 -i enp0s9 icmp6
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s9, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+16:36:25.975034 IP6 lab1 > ip6-allnodes: ICMP6, router advertisement, length 56
+16:36:41.991328 IP6 lab1 > ip6-allnodes: ICMP6, router advertisement, length 56
+16:36:58.007705 IP6 lab1 > ip6-allnodes: ICMP6, router advertisement, length 56
+
+
+vagrant@lab2:~$ ping6 fd01:2345:6789:abc2:a00:27ff:fed0:3ce2
+PING fd01:2345:6789:abc2:a00:27ff:fed0:3ce2(fd01:2345:6789:abc2:a00:27ff:fed0:3ce2) 56 data bytes
+64 bytes from fd01:2345:6789:abc2:a00:27ff:fed0:3ce2: icmp_seq=1 ttl=63 time=0.654 ms
+64 bytes from fd01:2345:6789:abc2:a00:27ff:fed0:3ce2: icmp_seq=2 ttl=63 time=0.427 ms
+64 bytes from fd01:2345:6789:abc2:a00:27ff:fed0:3ce2: icmp_seq=3 ttl=63 time=0.420 ms
+64 bytes from fd01:2345:6789:abc2:a00:27ff:fed0:3ce2: icmp_seq=4 ttl=63 time=0.432 ms
+64 bytes from fd01:2345:6789:abc2:a00:27ff:fed0:3ce2: icmp_seq=5 ttl=63 time=0.383 ms
+^C
+--- fd01:2345:6789:abc2:a00:27ff:fed0:3ce2 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4102ms
+rtt min/avg/max/mdev = 0.383/0.463/0.654/0.096 ms
+
+3.2
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on enp0s8, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+16:34:40.177040 IP6 _gateway > ip6-allnodes: ICMP6, router advertisement, length 56
+16:34:56.193194 IP6 _gateway > ip6-allnodes: ICMP6, router advertisement, length 56
+
+3.4
+vagrant@lab2:~$ traceroute -6 fd01:2345:6789:abc2:a00:27ff:fed0:3ce2
+traceroute to fd01:2345:6789:abc2:a00:27ff:fed0:3ce2 (fd01:2345:6789:abc2:a00:27ff:fed0:3ce2), 30 hops max, 80 byte packets
+ 1  fd01:2345:6789:abc1:a00:27ff:feef:9233 (fd01:2345:6789:abc1:a00:27ff:feef:9233)  0.348 ms  0.303 ms  0.374 ms
+ 2  fd01:2345:6789:abc2:a00:27ff:fed0:3ce2 (fd01:2345:6789:abc2:a00:27ff:fed0:3ce2)  0.782 ms  0.771 ms  0.867 ms
+
+
+4
+vagrant@lab1:~$ ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=58 time=3.87 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=58 time=5.28 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=58 time=5.33 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=58 time=3.04 ms
+64 bytes from 8.8.8.8: icmp_seq=5 ttl=58 time=6.57 ms
+64 bytes from 8.8.8.8: icmp_seq=6 ttl=58 time=5.54 ms
+^C
+--- 8.8.8.8 ping statistics ---
+6 packets transmitted, 6 received, 0% packet loss, time 5009ms
+rtt min/avg/max/mdev = 3.041/4.938/6.568/1.156 ms
+
+vagrant@lab4:~$ ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=58 time=4.43 ms
+64 bytes from 8.8.8.8: icmp_seq=2 ttl=58 time=5.49 ms
+64 bytes from 8.8.8.8: icmp_seq=3 ttl=58 time=4.33 ms
+64 bytes from 8.8.8.8: icmp_seq=4 ttl=58 time=5.76 ms
+^C
+--- 8.8.8.8 ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3130ms
+rtt min/avg/max/mdev = 4.327/5.002/5.759/0.631 ms
+
+
+
+
+
+
+
+
+
+
+B3
+
+
+2
+options {
+        directory "/var/cache/bind";
+
+        forwarders {
+           8.8.8.8;
+        };
+
+        allow-recursion {
+           localnets;
+        };
+
+        allow-query {
+           localnets;
+           192.168.1.0/24;
+        };
+
+        recursion yes;
+
+};
+
+
+vagrant@ns1:/etc/bind$ sudo tail -f /var/log/syslog
+Feb 13 05:37:19 ubuntu-jammy named[3140]: zone 0.in-addr.arpa/IN: loaded serial 1
+Feb 13 05:37:19 ubuntu-jammy named[3140]: zone 255.in-addr.arpa/IN: loaded serial 1
+Feb 13 05:37:19 ubuntu-jammy named[3140]: zone 127.in-addr.arpa/IN: loaded serial 1
+Feb 13 05:37:19 ubuntu-jammy named[3140]: zone localhost/IN: loaded serial 2
+Feb 13 05:37:19 ubuntu-jammy named[3140]: all zones loaded
+Feb 13 05:37:19 ubuntu-jammy named[3140]: running
+Feb 13 05:37:19 ubuntu-jammy systemd[1]: Started BIND Domain Name Server.
+Feb 13 05:37:19 ubuntu-jammy named[3140]: managed-keys-zone: Key 20326 for zone . is now trusted (acceptance timer complete)
+Feb 13 05:37:30 ubuntu-jammy named[3140]: resolver priming query complete: timed out
+Feb 13 05:38:32 ubuntu-jammy named[3140]: resolver priming query complete: success
+
+
+vagrant@ns1:/etc/bind$ dig google.com @127.0.0.1
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> google.com @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 54132
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 0d285102784a7ce60100000065cb0096cb5eeccd4bd38363 (good)
+;; QUESTION SECTION:
+;google.com.                    IN      A
+
+;; ANSWER SECTION:
+google.com.             137     IN      A       216.58.211.238
+
+;; Query time: 19 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1) (UDP)
+;; WHEN: Tue Feb 13 05:39:34 UTC 2024
+;; MSG SIZE  rcvd: 83
+
+
+3
+insec.zone:
+
+$TTL 60
+@       IN      SOA     ns1.insec. hostmaster.insec. (
+                        2024021301  ; Serial
+                        3600        ; Refresh
+                        600         ; Retry
+                        604800      ; Expire
+                        60 )        ; Minimum TTL
+
+@       IN      NS      ns1
+@       IN      NS      ns2
+ns1     IN      A       192.168.1.2
+ns2 IN  A   192.168.1.3
+ns3 IN  A   192.168.1.4
+client IN  A   192.168.1.5
+
+
+
+
+ 1.168.192.in-addr.arpa:
+
+$TTL 60
+@       IN      SOA     ns1.insec. hostmaster.insec. (
+                        2024021301  ; Serial
+                        3600        ; Refresh
+                        600         ; Retry
+                        604800      ; Expire
+                        60 )        ; Minimum TTL
+
+@       IN      NS      ns1
+@       IN      NS      ns2
+
+192.168.1.2     IN      PTR     ns1
+192.168.1.3     IN      PTR     ns2
+192.168.1.4     IN      PTR     ns3
+192.168.1.5     IN      PTR     client
+
+
+dig:
+vagrant@client:~$ dig ns1.insec
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> ns1.insec
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 33998
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: de3bb2a90ee53a3b0100000065cb0e20a730547d7d835cf7 (good)
+;; QUESTION SECTION:
+;ns1.insec.                     IN      A
+
+;; ANSWER SECTION:
+ns1.insec.              60      IN      A       192.168.1.2
+
+;; Query time: 3 msec
+;; SERVER: 192.168.1.2#53(192.168.1.2) (UDP)
+;; WHEN: Tue Feb 13 06:37:20 UTC 2024
+;; MSG SIZE  rcvd: 82
+
+4
+
+vagrant@ns2:/etc/bind$ dig ns1.insec @localhost
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> ns1.insec @localhost
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 51092
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 035ba811d0e989fe0100000065cb1b7c2fee53983083bc90 (good)
+;; QUESTION SECTION:
+;ns1.insec.                     IN      A
+
+;; ANSWER SECTION:
+ns1.insec.              60      IN      A       192.168.1.2
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(localhost) (UDP)
+;; WHEN: Tue Feb 13 07:34:20 UTC 2024
+;; MSG SIZE  rcvd: 82
+
+
+5
+vagrant@client:~$ sudo dig ns2.not.insec @ns1
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> ns2.not.insec @ns1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 42826
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: daaf9636442c5cb50100000065cb2290608a569fb889d018 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.                 IN      A
+
+;; ANSWER SECTION:
+ns2.not.insec.          60      IN      A       192.168.1.3
+
+;; Query time: 11 msec
+;; SERVER: 192.168.1.2#53(ns1) (UDP)
+;; WHEN: Tue Feb 13 08:04:32 UTC 2024
+;; MSG SIZE  rcvd: 86
+
+vagrant@client:~$ sudo dig ns2.not.insec @ns2
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> ns2.not.insec @ns2
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 57186
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 648035153f52706d0100000065cb2292e4f4ec5f9edd9fbe (good)
+;; QUESTION SECTION:
+;ns2.not.insec.                 IN      A
+
+;; ANSWER SECTION:
+ns2.not.insec.          60      IN      A       192.168.1.3
+
+;; Query time: 3 msec
+;; SERVER: 192.168.1.3#53(ns2) (UDP)
+;; WHEN: Tue Feb 13 08:04:34 UTC 2024
+;; MSG SIZE  rcvd: 86
+
+vagrant@client:~$ sudo dig ns2.not.insec @ns3
+
+; <<>> DiG 9.18.18-0ubuntu0.22.04.1-Ubuntu <<>> ns2.not.insec @ns3
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 32646
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: a444badc469219c30100000065cb2341f38a5affe1ee45d0 (good)
+;; QUESTION SECTION:
+;ns2.not.insec.                 IN      A
+
+;; ANSWER SECTION:
+ns2.not.insec.          60      IN      A       192.168.1.3
+
+;; Query time: 3 msec
+;; SERVER: 192.168.1.4#53(ns3) (UDP)
+;; WHEN: Tue Feb 13 08:07:29 UTC 2024
+;; MSG SIZE  rcvd: 86
+
+
+6
+Feb 13 08:28:11 ubuntu-jammy named[11738]: zone not.insec/IN: notify from 192.168.1.3#35833: serial 2023021304
+Feb 13 08:28:11 ubuntu-jammy named[11738]: zone not.insec/IN: Transfer started.
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: connected using 192.168.1.3#53
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: resetting
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: connected using 192.168.1.3#53
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: failed while receiving responses: REFUSED
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: Transfer status: REFUSED
+Feb 13 08:28:11 ubuntu-jammy named[11738]: transfer of 'not.insec/IN' from 192.168.1.3#53: Transfer completed: 0 messages, 0 records, 0 bytes, 0.001 secs (0 bytes/sec) (serial 2023021304)
+
+
+vagrant@ns3:/etc/bind$ sudo tail -f /var/log/syslog
+Feb 13 08:18:52 ubuntu-jammy named[11708]: client @0x7fe640021c48 192.168.1.3#33445: received notify for zone 'not.insec'
+Feb 13 08:18:52 ubuntu-jammy named[11708]: zone not.insec/IN: notify from 192.168.1.3#33445: serial 2023021303
+Feb 13 08:18:52 ubuntu-jammy named[11708]: zone not.insec/IN: Transfer started.
+Feb 13 08:18:52 ubuntu-jammy named[11708]: transfer of 'not.insec/IN' from 192.168.1.3#53: connected using 192.168.1.3#53 TSIG ns2.not.insec.key
+Feb 13 08:18:52 ubuntu-jammy named[11708]: zone not.insec/IN: transferred serial 2023021303: TSIG 'ns2.not.insec.key'
+Feb 13 08:18:52 ubuntu-jammy named[11708]: transfer of 'not.insec/IN' from 192.168.1.3#53: Transfer status: success
+Feb 13 08:18:52 ubuntu-jammy named[11708]: transfer of 'not.insec/IN' from 192.168.1.3#53: Transfer completed: 1 messages, 6 records, 258 bytes, 0.003 secs (86000 bytes/sec) (serial 2023021303)
+Feb 13 08:18:52 ubuntu-jammy named[11708]: zone not.insec/IN: sending notifies (serial 2023021303)
+Feb 13 08:25:58 ubuntu-jammy named[11708]: client @0x7fe640021c48 192.168.1.3#44968: received notify for zone 'not.insec'
+Feb 13 08:25:58 ubuntu-jammy named[11708]: zone not.insec/IN: notify from 192.168.1.3#44968: zone is up to date

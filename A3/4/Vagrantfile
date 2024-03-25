@@ -1,0 +1,210 @@
+#Define Vagrant provider and vagrant Box. Number 2 in configure indicates configuration version. Check vagrant documentation for more details
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+
+Vagrant.configure("2") do |config|    
+  
+    ## Disable auto update of VirtualBox Guest Addition
+    config.vbguest.auto_update = false
+
+    # Lab1
+    config.vm.define "lab1" do |subconfig|
+
+                  subconfig.vm.box = "ubuntu/jammy64"
+
+                  subconfig.vm.hostname="lab1"
+
+                  subconfig.vm.network "private_network", 
+                    ip: "fd01:2345:6789:abc1::1",
+                    netmask: "64",
+                    virtualbox__intnet:"intnet1"
+
+                  subconfig.vm.network "private_network",
+                    ip: "192.168.1.1",
+                    netmask: "16",
+                    virtualbox__intnet:"intnet2"
+
+                  subconfig.vm.provider :virtualbox do |vb|
+
+                                         # Custom CPU & Memory
+                                          vb.customize ["modifyvm", :id, "--groups", "/A3-4"]
+
+                                          vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                                          vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+                  end
+
+                  #add provisioning scripts to Vagrantfile
+
+                  subconfig.vm.provision "shell", inline: <<-SHELL
+
+                            sudo echo "fd01:2345:6789:abc1::2 lab2" | sudo tee -a /etc/hosts
+
+                            sudo echo "192.168.2.1 lab3" | sudo tee -a /etc/hosts
+
+                            sudo echo "fd01:2345:6789:abc2::1 lab3" | sudo tee -a /etc/hosts
+
+                            sudo echo "fd01:2345:6789:abc2::2 lab4" | sudo tee -a /etc/hosts
+
+                            sudo apt update
+
+                            sudo apt install -y net-tools traceroute lynx nmap
+
+                            
+
+                  SHELL
+
+                  subconfig.vm.provision :shell, privileged: false, path: "scripts/lab1.sh"
+
+
+    end
+
+    # Lab2
+    config.vm.define "lab2" do |subconfig|
+
+      subconfig.vm.box = "ubuntu/jammy64"
+
+      subconfig.vm.hostname="lab2"
+
+      subconfig.vm.network "private_network", 
+        ip: "fd01:2345:6789:abc1::2",
+        netmask: "64",
+        virtualbox__intnet:"intnet1"
+
+
+      subconfig.vm.provider :virtualbox do |vb|
+
+                            # Custom CPU & Memory
+                             vb.customize ["modifyvm", :id, "--groups", "/A3-4"]
+
+                             vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                             vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+      end
+    
+
+      # Add provisioning scripts
+
+      subconfig.vm.provision "shell", inline: <<-SHELL
+
+          sudo echo "fd01:2345:6789:abc1::1 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc2::1 lab3" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc2::2 lab4" | sudo tee -a /etc/hosts
+          
+          sudo apt update
+
+          sudo apt install -y net-tools traceroute
+
+        SHELL
+
+      subconfig.vm.provision :shell, privileged: false, path: "scripts/lab2.sh"
+
+    end
+
+
+    # Lab3
+    config.vm.define "lab3" do |subconfig|
+
+      subconfig.vm.box = "ubuntu/jammy64"
+
+      subconfig.vm.hostname="lab3"
+
+
+
+      subconfig.vm.network "private_network",
+        ip: "192.168.2.1",
+        netmask: "16",
+        virtualbox__intnet: "intnet2"
+
+      subconfig.vm.network "private_network",
+        ip: "fd01:2345:6789:abc2::1",
+        netmask: "64",
+        virtualbox__intnet: "intnet3"
+
+      subconfig.vm.provider :virtualbox do |vb|
+
+                            # Custom CPU & Memory
+                             vb.customize ["modifyvm", :id, "--groups", "/A3-4"]
+
+                             vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                             vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+      end
+    
+
+      # Add provisioning scripts
+
+      subconfig.vm.provision "shell", inline: <<-SHELL
+
+          sudo echo "192.168.1.1 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc1::1 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc1::2 lab2" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc2::2 lab4" | sudo tee -a /etc/hosts
+
+          sudo apt update
+
+          sudo apt install -y net-tools traceroute
+
+        SHELL
+
+      subconfig.vm.provision :shell, privileged: false, path: "scripts/lab3.sh"
+
+      end
+    
+    # Lab4
+    config.vm.define "lab4" do |subconfig|
+
+      subconfig.vm.box = "ubuntu/jammy64"
+
+      subconfig.vm.hostname="lab4"
+
+      subconfig.vm.network "private_network",
+        ip: "fd01:2345:6789:abc2::2",
+        netmask: "64",
+        virtualbox__intnet: "intnet3"
+
+
+      subconfig.vm.provider :virtualbox do |vb|
+
+                            # Custom CPU & Memory
+                             vb.customize ["modifyvm", :id, "--groups", "/A3-4"]
+
+                             vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                             vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+      end
+    
+
+      # Add provisioning scripts
+
+      subconfig.vm.provision "shell", inline: <<-SHELL
+
+          sudo echo "fd01:2345:6789:abc1::1 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc1::2 lab2" | sudo tee -a /etc/hosts
+
+          sudo echo "fd01:2345:6789:abc2::1 lab3" | sudo tee -a /etc/hosts
+
+          sudo apt update
+
+          sudo apt install -y net-tools traceroute
+
+        SHELL
+
+      subconfig.vm.provision :shell, privileged: false, path: "scripts/lab4.sh"
+
+
+
+      end
+
+end

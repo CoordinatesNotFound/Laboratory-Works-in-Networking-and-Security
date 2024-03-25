@@ -1,0 +1,305 @@
+vagrant@lab3:~$ traceroute lab2
+traceroute to lab2 (192.168.0.3), 64 hops max
+  1   192.168.2.2  1.270ms  0.381ms  0.264ms
+  2   192.168.0.3  1.282ms  0.512ms  0.462ms
+
+vagrant@lab2:~$ traceroute lab3
+traceroute to lab3 (192.168.2.3), 64 hops max
+  1   192.168.0.2  0.694ms  0.430ms  0.420ms
+  2   192.168.2.3  0.739ms  0.449ms  0.446ms
+
+
+
+
+2
+
+before
+vagrant@lab2:~$ sudo nmap -sV -p- lab3
+Starting Nmap 7.80 ( https://nmap.org ) at 2024-03-21 17:04 UTC
+Nmap scan report for lab3 (192.168.2.3)
+Host is up (0.00023s latency).
+Not shown: 65532 closed ports
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     ProFTPD
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.52 ((Ubuntu))
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 15.58 seconds
+
+
+vagrant@lab3:~$ sudo nmap -sV -p- lab2
+Starting Nmap 7.80 ( https://nmap.org ) at 2024-03-21 17:00 UTC
+Nmap scan report for lab2 (192.168.0.3)
+Host is up (0.00025s latency).
+Not shown: 65534 closed ports
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 3.55 second
+
+
+
+
+After
+vagrant@lab2:~$ sudo nmap -sV -p- lab3
+Starting Nmap 7.80 ( https://nmap.org ) at 2024-03-21 18:10 UTC
+Nmap scan report for lab3 (192.168.2.3)
+Host is up (0.00059s latency).
+Not shown: 65532 closed ports
+PORT   STATE SERVICE VERSION
+21/tcp open  ftp     ProFTPD
+22/tcp open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.52 ((Ubuntu))
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 14.10 seconds
+
+
+
+vagrant@lab3:~$ sudo nmap -sV -p- -Pn lab2
+Starting Nmap 7.80 ( https://nmap.org ) at 2024-03-21 18:08 UTC
+Nmap scan report for lab2 (192.168.0.3)
+Host is up (0.0019s latency).
+All 65535 scanned ports on lab2 (192.168.0.3) are filtered (49151) or closed (16384)
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 60.90 seconds
+
+
+3
+
+
+vagrant@lab1:~$ sudo modprobe ip_conntrack_ftp
+vagrant@lab1:~$ sudo nft add table inet filter
+vagrant@lab1:~$ sudo nft add chain inet filter forward { type filter hook forward priority 0 \; policy drop \; }
+vagrant@lab1:~$ sudo nft add rule inet filter forward iif enp0s8 icmp type echo-request counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward oif enp0s8 icmp type echo-reply counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward iif enp0s8 tcp dport 22 ct state new,established counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward oif enp0s8 tcp sport 22 ct state established counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward iif enp0s8 tcp dport 80 ct state new,established counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward oif enp0s8 tcp sport 80 ct state established counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward iif enp0s8 tcp dport {20-21} counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward oif enp0s8 tcp sport {20-21} counter accept
+vagrant@lab1:~$  sudo nft add rule inet filter forward iif enp0s9 tcp dport {49152-65535} counter accept
+vagrant@lab1:~$ sudo nft add rule inet filter forward oif enp0s9 tcp sport {49152-65535} counter accept
+vagrant@lab1:~$ sudo nft list ruleset
+table inet filter {
+        chain forward {
+                type filter hook forward priority filter; policy drop;
+                iif "enp0s8" icmp type echo-request counter packets 1 bytes 28 accept
+                oif "enp0s8" icmp type echo-reply counter packets 1 bytes 28 accept
+                iif "enp0s8" tcp dport 22 ct state established,new counter packets 7 bytes 352 accept
+                oif "enp0s8" tcp sport 22 ct state established counter packets 4 bytes 249 accept
+                iif "enp0s8" tcp dport 80 ct state established,new counter packets 52 bytes 3893 accept
+                oif "enp0s8" tcp sport 80 ct state established counter packets 47 bytes 48033 accept
+                iif "enp0s8" tcp dport 20-21 counter packets 20 bytes 1038 accept
+                oif "enp0s8" tcp sport 20-21 counter packets 16 bytes 1590 accept
+                iif "enp0s9" tcp dport 49152-65535 counter packets 81916 bytes 3342176 accept
+                oif "enp0s9" tcp sport 49152-65535 counter packets 81916 bytes 3538768 accept
+        }
+}
+
+
+vagrant@lab2:~$ ftp lab3
+Connected to lab3.
+220 ProFTPD Server (Debian) [::ffff:192.168.2.3]
+Name (lab3:vagrant): vagrant
+331 Password required for vagrant
+Password:
+230 User vagrant logged in
+Remote system type is UNIX.
+Using binary mode to transfer files.
+ftp> put test.txt
+local: test.txt remote: test.txt
+229 Entering Extended Passive Mode (|||64380|)
+150 Opening BINARY mode data connection for test.txt
+     0        0.00 KiB/s
+226 Transfer complete
+ftp> quit
+
+vagrant@lab3:~$ curl -I lab2
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 22:54:26 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 22:34:00 GMT
+ETag: "29af-614334dbd4043"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html
+
+
+23:02:51.812494 IP lab3.ftp > lab2.46990: Flags [P.], seq 723:771, ack 87, win 510, options [nop,nop,TS val 85084485 ecr 246913186], length 48: FTP: 229 Entering Extended Passive Mode (|||26889|)
+23:02:51.813487 IP lab2.46990 > lab3.ftp: Flags [.], ack 771, win 16652, options [nop,nop,TS val 246913188 ecr 85084485], length 0
+23:02:51.813658 IP lab2.54376 > lab3.26889: Flags [S], seq 540756081, win 65535, options [mss 1460,sackOK,TS val 246913189 ecr 0,nop,wscale 2], length 0
+23:02:51.813692 IP lab3.26889 > lab2.54376: Flags [S.], seq 3813125044, ack 540756082, win 65160, options [mss 1460,sackOK,TS val 85084487 ecr 246913189,nop,wscale 7], length 0
+23:02:51.814521 IP lab2.54376 > lab3.26889: Flags [.], ack 1, win 16384, options [nop,nop,TS val 246913189 ecr 85084487], length 0
+23:02:51.814785 IP lab2.46990 > lab3.ftp: Flags [P.], seq 87:102, ack 771, win 16652, options [nop,nop,TS val 246913190 ecr 85084485], length 15: FTP: STOR test.txt
+23:02:51.815361 IP lab3.ftp > lab2.46990: Flags [P.], seq 771:825, ack 102, win 510, options [nop,nop,TS val 85084488 ecr 246913190], length 54: FTP: 150 Opening BINARY mode data connection for test.txt
+23:02:51.816658 IP lab2.54376 > lab3.26889: Flags [F.], seq 1, ack 1, win 16384, options [nop,nop,TS val 246913191 ecr 85084487], length 0
+23:02:51.816808 IP lab3.26889 > lab2.54376: Flags [F.], seq 1, ack 2, win 510, options [nop,nop,TS val 85084490 ecr 246913191], length 0
+23:02:51.817121 IP lab3.ftp > lab2.46990: Flags [P.], seq 825:848, ack 102, win 510, options [nop,nop,TS val 85084490 ecr 246913190], length 23: FTP: 226 Transfer complete
+23:02:51.817730 IP lab2.54376 > lab3.26889: Flags [.], ack 2, win 16384, options [nop,nop,TS val 246913193 ecr 85084490], length 0
+23:02:51.817970 IP lab2.46990 > lab3.ftp: Flags [.], ack 848, win 16652, options [nop,nop,TS val 246913193 ecr 85084488], length 0
+
+
+23:03:16.099103 IP lab2.51932 > lab3.http: Flags [S], seq 2654095637, win 64240, options [mss 1460,sackOK,TS val 246937474 ecr 0,nop,wscale 7], length 0
+23:03:16.099141 IP lab3.http > lab2.51932: Flags [S.], seq 1345055939, ack 2654095638, win 65160, options [mss 1460,sackOK,TS val 85108772 ecr 246937474,nop,wscale 7], length 0
+23:03:16.100122 IP lab2.51932 > lab3.http: Flags [.], ack 1, win 502, options [nop,nop,TS val 246937475 ecr 85108772], length 0
+23:03:16.100122 IP lab2.51932 > lab3.http: Flags [P.], seq 1:70, ack 1, win 502, options [nop,nop,TS val 246937475 ecr 85108772], length 69: HTTP: HEAD / HTTP/1.1
+23:03:16.100167 IP lab3.http > lab2.51932: Flags [.], ack 70, win 509, options [nop,nop,TS val 85108773 ecr 246937475], length 0
+23:03:16.100585 IP lab3.http > lab2.51932: Flags [P.], seq 1:256, ack 70, win 509, options [nop,nop,TS val 85108774 ecr 246937475], length 255: HTTP: HTTP/1.1 200 OK
+23:03:16.101599 IP lab2.51932 > lab3.http: Flags [.], ack 256, win 501, options [nop,nop,TS val 246937477 ecr 85108774], length 0
+23:03:16.101599 IP lab2.51932 > lab3.http: Flags [F.], seq 70, ack 256, win 501, options [nop,nop,TS val 246937477 ecr 85108774], length 0
+23:03:16.101821 IP lab3.http > lab2.51932: Flags [F.], seq 256, ack 71, win 509, options [nop,nop,TS val 85108775 ecr 246937477], length 0
+23:03:16.102679 IP lab2.51932 > lab3.http: Flags [.], ack 257, win 501, options [nop,nop,TS val 246937478 ecr 85108775], length 0
+4
+
+http_port 8000 transparent
+
+acl lab2 src 192.168.0.3
+
+http_access allow lab2
+
+# acl lab3 dst 192.168.2.2
+# never_direct allow lab3
+
+
+Before:
+
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 19:20:19 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 17:04:30 GMT
+ETag: "29af-6142eb36402d0"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html
+
+After:
+
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 20:01:41 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 19:45:47 GMT
+ETag: "29af-61430f4238dbe"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html
+X-Cache: MISS from lab1
+X-Cache-Lookup: MISS from lab1:3128
+Via: 1.1 lab1 (squid/5.7)
+Connection: keep-alive
+
+
+
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 20:15:37 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 19:45:47 GMT
+ETag: "29af-61430f4238dbe"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html
+Age: 2
+X-Cache: HIT from lab1
+X-Cache-Lookup: HIT from lab1:3128
+Via: 1.1 lab1 (squid/5.7)
+Connection: keep-alive
+
+After after:
+
+vagrant@lab2:~$ curl -I lab3
+HTTP/1.1 502 Bad Gateway
+Server: squid/5.7
+Mime-Version: 1.0
+Date: Thu, 21 Mar 2024 20:11:09 GMT
+Content-Type: text/html;charset=utf-8
+Content-Length: 3417
+X-Squid-Error: ERR_READ_ERROR 0
+Vary: Accept-Language
+Content-Language: en
+X-Cache: MISS from lab1
+X-Cache-Lookup: MISS from lab1:3128
+Via: 1.1 lab1 (squid/5.7)
+Connection: keep-alive
+
+
+5
+
+
+
+
+sudo nft add table ip nat
+sudo nft add chain ip nat prerouting { type nat hook prerouting priority 0 \; }
+
+
+sudo nft add rule ip nat prerouting tcp dport 8080 dnat to 192.168.0.3:80
+
+sudo nft add chain ip nat postrouting { type nat hook postrouting priority 0 \; }
+
+sudo nft add rule ip nat postrouting oif enp0s3 masquerade
+
+
+
+sudo nft add table inet filter
+
+sudo nft add chain inet filter input { type filter hook input priority 0 \; policy drop\; }
+
+sudo nft add chain inet filter output { type filter hook output priority 0 \; policy drop\; }
+
+
+sudo nft add chain inet filter forward { type filter hook forward priority 0 \; policy drop\; }
+
+
+
+
+sudo nft add rule inet filter input iif lo accept
+sudo nft add rule inet filter input tcp sport 80 accept
+sudo nft add rule inet filter input tcp dport 22 accept
+sudo nft add rule inet filter input tcp dport 8080 accept
+
+sudo nft add rule inet filter output oif lo accept
+sudo nft add rule inet filter output tcp dport 80 accept
+sudo nft add rule inet filter output tcp sport 22 accept
+sudo nft add rule inet filter output tcp sport 8080 accept
+
+
+sudo nft add rule inet filter forward iif enp0s9 oif enp0s8 ct state new,related,established accept
+sudo nft add rule inet filter forward iif enp0s8 oif enp0s9 ct state related,established accept
+
+
+
+
+vagrant@lab3:~$ curl -I lab1:8080
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 22:41:06 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 22:34:00 GMT
+ETag: "29af-614334dbd4043"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html
+
+vagrant@lab3:~$ curl -I lab2
+HTTP/1.1 200 OK
+Date: Thu, 21 Mar 2024 22:41:21 GMT
+Server: Apache/2.4.52 (Ubuntu)
+Last-Modified: Thu, 21 Mar 2024 22:34:00 GMT
+ETag: "29af-614334dbd4043"
+Accept-Ranges: bytes
+Content-Length: 10671
+Vary: Accept-Encoding
+Content-Type: text/html

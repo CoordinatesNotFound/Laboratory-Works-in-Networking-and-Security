@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sa-logic
+spec:
+  replicas: 2
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: sa-logic
+  template:
+    metadata:
+      labels:
+        app: sa-logic
+    spec:
+      containers:
+      - image: oliver519/sa-logic
+        imagePullPolicy: Always
+        name: sa-logic
+        ports:
+        - containerPort: 5000

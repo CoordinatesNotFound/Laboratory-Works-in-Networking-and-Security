@@ -1,0 +1,155 @@
+#Define Vagrant provider and vagrant Box. Number 2 in configure indicates configuration version. Check vagrant documentation for more details
+
+ENV["LC_ALL"] = "en_US.UTF-8"
+
+
+Vagrant.configure("2") do |config|    
+  
+    ## Disable auto update of VirtualBox Guest Addition
+    config.vbguest.auto_update = false
+
+    # Lab1
+    config.vm.define "lab1" do |subconfig|
+
+                  subconfig.vm.box = "ubuntu/jammy64"
+
+                  subconfig.vm.hostname="lab1"
+
+                  subconfig.vm.network "private_network", ip: "192.168.0.2",virtualbox__intnet: true,virtualbox__intnet:"intnet1"
+
+                  subconfig.vm.network "private_network",ip: "192.168.2.2",virtualbox__intnet: true,virtualbox__intnet:"intnet2"
+
+                  subconfig.vm.provider :virtualbox do |vb|
+
+                                         # Custom CPU & Memory
+                                          vb.customize ["modifyvm", :id, "--groups", "/A5-DMZ"]
+
+                                          vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                                          vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+
+                  end
+
+                  #add provisioning scripts to Vagrantfile
+
+                  subconfig.vm.provision "shell", inline: <<-SHELL
+
+                            sudo echo "192.168.0.3 lab2" | sudo tee -a /etc/hosts
+
+                            sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
+
+                            sudo apt update
+
+                            sudo apt install -y net-tools inetutils-traceroute nmap nftables
+
+                            sudo ip route add 192.168.0.0/24 dev enp0s8
+                            
+                            sudo ip route add 192.168.2.0/24 dev enp0s9
+
+                            sysctl -w net.ipv4.conf.enp0s8.forwarding=1
+                            sysctl -w net.ipv4.conf.enp0s9.forwarding=1
+                            sysctl -w net.ipv4.conf.enp0s8.proxy_arp=1
+                            sysctl -w net.ipv4.conf.enp0s9.proxy_arp=1
+
+                            
+
+                  SHELL
+
+                  subconfig.vm.provision :shell, privileged: false, path: "scripts/lab1.sh"
+
+
+    end
+
+    # Lab2
+    config.vm.define "lab2" do |subconfig|
+
+      subconfig.vm.box = "ubuntu/jammy64"
+
+      subconfig.vm.hostname="lab2"
+
+      subconfig.vm.network "private_network", ip: "192.168.0.3",virtualbox__intnet: true,virtualbox__intnet:"intnet1"
+
+
+      subconfig.vm.provider :virtualbox do |vb|
+
+                            # Custom CPU & Memory
+                             vb.customize ["modifyvm", :id, "--groups", "/A5-DMZ"]
+
+                             vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                             vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+                             
+
+
+      end
+    
+
+      # Add provisioning scripts
+
+      subconfig.vm.provision "shell", inline: <<-SHELL
+
+          sudo echo "192.168.0.2 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "192.168.2.3 lab3" | sudo tee -a /etc/hosts
+          
+          sudo apt update
+
+          sudo apt install -y net-tools inetutils-traceroute nmap 
+
+          sudo ip route add 192.168.2.0/24 via 192.168.0.2 dev enp0s8
+
+        SHELL
+
+      subconfig.vm.provision :shell, privileged: false, path: "scripts/lab2.sh"
+
+    end
+
+
+    # Lab3
+    config.vm.define "lab3" do |subconfig|
+
+      subconfig.vm.box = "ubuntu/jammy64"
+
+      subconfig.vm.hostname="lab3"
+
+      subconfig.vm.network "private_network", ip: "192.168.2.3",virtualbox__intnet: true,virtualbox__intnet:"intnet2"
+
+
+      subconfig.vm.provider :virtualbox do |vb|
+
+                            # Custom CPU & Memory
+                             vb.customize ["modifyvm", :id, "--groups", "/A5-DMZ"]
+
+                             vb.customize ["modifyvm", :id, "--memory", "4096"]
+
+                             vb.customize ["modifyvm", :id, "--cpus", "2"]
+
+
+
+      end
+    
+
+      # Add provisioning scripts
+
+      subconfig.vm.provision "shell", inline: <<-SHELL
+
+
+          sudo echo "192.168.2.2 lab1" | sudo tee -a /etc/hosts
+
+          sudo echo "192.168.0.3 lab2" | sudo tee -a /etc/hosts
+
+          sudo apt update
+
+          sudo apt install -y net-tools inetutils-traceroute nmap 
+
+          sudo ip route add 192.168.0.0/24 via 192.168.2.2 dev enp0s8
+
+        SHELL
+
+      subconfig.vm.provision :shell, privileged: false, path: "scripts/lab3.sh"
+
+      end
+
+end
